@@ -39,11 +39,14 @@ server {
     root /path/to/www;
 
     index index.lhp;
+    
+    error_page 404 /404.lhp;
 
     location ~ \.lhp$ {
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         fastcgi_pass 127.0.0.1:9000;
+        fastcgi_intercept_errors on;
     }
 
     error_page 404 /404.lhp;

@@ -113,27 +113,7 @@ static void lhp_set_package_path(lua_State *L, const char *script_path) {
 void lhp_process_file(const char *path, FCGX_Stream *out) {
     FILE *fp = fopen(path, "rb");
     if (!fp) {
-        // already trying to render 404
-        if (strcmp(path + strlen(path) - 8, "/404.lhp") == 0) {
-            FCGX_FPrintF(out, "Status: 404\r\n"
-                              "Content-Type: text/plain\r\n\r\n"
-                              "404: Page not found\n");
-            return;
-        }
-
-        char *dir = lhp_dirname(path);
-        size_t sz = strlen(dir) + strlen("/404.lhp");
-        char *_404 = malloc(sz + 1);
-        if (!_404) {
-            free(dir);
-            return;
-        }
-
-        snprintf(_404, sz + 1, "%s/404.lhp", dir);
-
-        free(dir);
-        lhp_process_file(_404, out);
-        free(_404);
+        FCGX_FPrintF(out, "Status: 404 Not Found\r\n\r\n");
         return;
     }
 
