@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <style>
+            body {
+                width: 90%;
+                margin: 0 auto;
+                font-family: sans-serif;
+            }
+        </style>
+        <title>Welcome to lhp! </title>
+    </head>
+
+    <body>
+        <p>
+            404: Page not found
+        </p>
+    </body>
+
+</html>

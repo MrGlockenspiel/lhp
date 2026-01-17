@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <style>
+            body {
+                width: 90%;
+                margin: 0 auto;
+                font-family: sans-serif;
+            }
+        </style>
+        <title>Welcome to lhp! </title>
+    </head>
+
+    <body>
+        <h1>Welcome to lhp!</h1>
+        <p>
+            Currently running on
+            <?lua 
+                if type(jit) == 'table' then
+                    print(jit.version)
+                else
+                    print(_VERSION)
+                end
+            ?>
+        </p>
+
+        <?lua
+            print("<p>Build date: " .. _LHP_BUILD_DATE .. "</p>")
+            print("<p>Compiler version: " .. _LHP_COMPILER_VERSION .. "</p>")
+        ?>
+
+        <a href="https://github.com/MrGlockenspiel/lhp" target="_blank">GitHub Repository</a>
+    </body>
+
+</html>
