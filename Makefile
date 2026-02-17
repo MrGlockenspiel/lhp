@@ -2,10 +2,7 @@ CC ?= clang
 LUA ?= luajit
 
 CFLAGS = -std=c23 -Wall -Wextra -Wpedantic
-LDFLAGS = 
-
-CFLAGS += $(shell pkg-config --cflags $(LUA) fcgi)
-LDFLAGS += $(shell pkg-config --libs $(LUA) fcgi)
+CFLAGS += $(shell pkg-config --cflags --libs $(LUA) fcgi)
 
 BIN = lhp
 PORT = 9000
@@ -16,12 +13,10 @@ else
 CFLAGS += -Og -g
 endif
 
-SRC = $(wildcard src/*.c)
+.PHONY: all clean run stop
 
-all: $(BIN)
-
-$(BIN): $(SRC)
-	$(CC) $(CFLAGS) $(SRC) -o $(BIN) $(LDFLAGS)
+all:
+	$(CC) $(CFLAGS) $(wildcard src/*.c) -o $(BIN)
 
 clean:
 	rm -f $(BIN)

@@ -110,7 +110,20 @@ static void lhp_set_package_path(lua_State *L, const char *script_path) {
     free(dir);
 }
 
-void lhp_process_file(const char *path, FCGX_Stream *out) {
+static void lhp_lua_timeout_hook(lua_State *L, lua_Debug *ar) {
+    (void)ar;
+    luaL_error(L, "Lua execution timeout");
+}
+
+void lhp_process_file(lua_State *L, const char *path, FCGX_Stream *out) {
+    if (!L) {
+        FCGX_FPrintF(out, "Status: 500\r\n\r\nLua state was null");
+        return;
+    }
+
+    // reset stack
+    lua_settop(L, 0);
+
     FILE *fp = fopen(path, "rb");
     if (!fp) {
         FCGX_FPrintF(out, "Status: 404 Not Found\r\n\r\n");
@@ -133,12 +146,12 @@ void lhp_process_file(const char *path, FCGX_Stream *out) {
         return;
     }
 
-    fread(buf, 1, size, fp);
-    buf[size] = 0;
+    size_t read_sz = fread(buf, 1, size, fp);
+    buf[read_sz] = '\0';
     fclose(fp);
 
-    lua_State *L = luaL_newstate();
-    luaL_openlibs(L);
+    // 100'000 instructions per Lua chunk
+    lua_sethook(L, lhp_lua_timeout_hook, LUA_MASKCOUNT, 100000);
 
     // override print()
     lua_pushlightuserdata(L, out);
@@ -200,11 +213,20 @@ void lhp_process_file(const char *path, FCGX_Stream *out) {
         p = end + 2;
     }
 
-    lua_close(L);
     free(buf);
+
+    // clean stack
+    lua_settop(L, 0);
 }
 
 int main(void) {
+    lua_State *L = luaL_newstate();
+    if (!L) {
+        fprintf(stderr, "ERROR: Failed to create Lua state\n");
+    }
+
+    luaL_openlibs(L);
+
     FCGX_Request req;
 
     FCGX_Init();
@@ -222,11 +244,13 @@ int main(void) {
         }
 
         FCGX_FPrintF(out, "Content-Type: text/html\r\n\r\n");
-        lhp_process_file(script, out);
+        lhp_process_file(L, script, out);
 
     end_req:
         FCGX_Finish_r(&req);
     }
+
+    lua_close(L);
 
     return 0;
 }
