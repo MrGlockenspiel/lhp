@@ -30,6 +30,7 @@ Start server with `spawn-fcgi` on the deafult port of 9000:
 make run
 ```
 
+This creates a Unix socket at `/run/lhp/lhp.sock` with 660 permissions to allow the web server group access.
 You'll still need a web server to handle the requests.
 
 Example Nginx config:
@@ -45,7 +46,7 @@ server {
     location ~ \.lhp$ {
         include fastcgi_params;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_pass 127.0.0.1:9000;
+        fastcgi_pass unix:/run/lhp/lhp.sock; # or configured socket path in Makefile
         fastcgi_intercept_errors on;
     }
 

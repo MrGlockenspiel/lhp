@@ -5,7 +5,10 @@ CFLAGS = -std=c23 -Wall -Wextra -Wpedantic
 CFLAGS += $(shell pkg-config --cflags --libs $(LUA) fcgi)
 
 BIN = lhp
-PORT = 9000
+
+SOCKET_DIR = /run/lhp
+SOCKET := $(SOCKET_DIR)/lhp.sock
+GROUP = http
 
 ifdef RELEASE
 CFLAGS += -O3
@@ -21,8 +24,16 @@ all:
 clean:
 	rm -f $(BIN)
 
-run: all
-	spawn-fcgi -p $(PORT) -- $(BIN)
+socket:
+	sudo mkdir -p $(SOCKET_DIR)
+	sudo chown $(USER):$(GROUP) $(SOCKET_DIR)
+	chmod 775 $(SOCKET_DIR)
+
+run: all socket
+	rm -f $(SOCKET)
+	spawn-fcgi -s $(SOCKET) -M 660 -G $(GROUP) -- ./$(BIN)
 
 stop:
-	pkill $(BIN)
+	pkill $(BIN) || true
+	rm -f $(SOCKET)
+	
